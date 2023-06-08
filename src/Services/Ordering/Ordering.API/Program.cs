@@ -1,3 +1,7 @@
+using EventBus.Messages.Common;
+using EventBus.Messages.Events;
+using MassTransit;
+using Ordering.API.EventBusConsumer;
 using Ordering.API.Extensions;
 using Ordering.Application;
 using Ordering.Infrastructure;
@@ -12,9 +16,30 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add custome extension methods for service registration
+// Add custom extension methods for service registration
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// MassTransit.RabbitMQ configuration
+builder.Services.AddMassTransit(config =>
+{
+    config.AddConsumer<BasketCheckoutConsumer>(); // Add consumer
+
+    config.UsingRabbitMq((context, configure) =>
+    {
+        configure.Host(builder.Configuration["EventBusSettings:HostAddress"]);
+
+        // Additional consumer information configured
+        configure.ReceiveEndpoint(EventBusConstants.BasketCheckoutQueue, configureEndpoint =>
+        {
+            configureEndpoint.ConfigureConsumer<BasketCheckoutConsumer>(context);
+        });
+    });
+});
+
+// General Configuration
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<BasketCheckoutConsumer>(); // important to add consumer as a service
 
 var app = builder.Build();
 
@@ -25,9 +50,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MigrateDatabse<OrderContext>((context, services) =>
+app.MigrateDatabase<OrderContext>((context, services) =>
 {
-    var logger = services.GetRequiredService<ILogger<OrderContextSeed>>();
+    var logger = services.GetService<ILogger<OrderContextSeed>>();
     OrderContextSeed.SeedAsync(context, logger).Wait();
 });
 
