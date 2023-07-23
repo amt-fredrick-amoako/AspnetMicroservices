@@ -33,7 +33,7 @@ namespace Basket.API.Controllers
             return Ok(basket ?? new ShoppingCart(userName));
         }
 
-        [HttpPost("{userName}", Name = "UpdateBasket")]
+        [HttpPost(Name = "UpdateBasket")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<ShoppingCart>> UpdateBasket([FromBody] ShoppingCart basket)
         {

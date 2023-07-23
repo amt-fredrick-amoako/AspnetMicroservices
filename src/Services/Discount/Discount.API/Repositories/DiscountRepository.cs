@@ -46,8 +46,8 @@ namespace Discount.API.Repositories
             //use QueryFirstOrDefault from Dapper orm with the return type and appropriate sql script and pass in the parameter via anonymous obj
             var coupon = await connection.QueryFirstOrDefaultAsync<Coupon>("SELECT * FROM Coupon WHERE ProductName = @ProductName", new { ProductName = productName });
             //if there's no coupon this line would run
-            if (coupon == null) 
-                return new Coupon {ProductName = "No Discount", Amount = 0, Description = "No Discount on this item"};
+            if (coupon == null)
+                return new Coupon { ProductName = "No Discount", Amount = 0, Description = "No Discount on this item" };
             //else return coupon
             return coupon;
         }
